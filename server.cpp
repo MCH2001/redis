@@ -62,7 +62,15 @@
 */
 
 
-
+/*
+    Functions to read and write all bytes
+    These functions are used to read and write all bytes from/to a file descriptor.
+    They are used to ensure that the entire buffer is read or written, even if the read or write system calls return less than the requested number of bytes.
+    @param fd: file descriptor to read from or write to
+    @param buf: buffer to read from or write to
+    @param n: number of bytes to read or write
+    @return: 0 on success, -1 on error
+*/
 static int32_t read_full(int fd, char *buf, size_t n){
     while (n > 0) {
         ssize_t rv = read(fd,buf, n);
@@ -75,7 +83,14 @@ static int32_t read_full(int fd, char *buf, size_t n){
     }
     return 0;
 }
-
+/*
+    The write_all function writes all bytes from the buffer to the file descriptor.
+    It is used to ensure that the entire buffer is written, even if the write system call returns less than the requested number of bytes.
+    @param fd: file descriptor to write to
+    @param buf: buffer to write from
+    @param n: number of bytes to write
+    @return: 0 on success, -1 on error
+*/
 static int32_t write_all(int fd, const char *buf, size_t n) {
     while (n > 0) {
         ssize_t rv = write(fd, buf, n);
@@ -89,7 +104,12 @@ static int32_t write_all(int fd, const char *buf, size_t n) {
     return 0;
 }
 
-
+/*
+    The one_request function reads a request from the client and writes a response back to the client.
+    It is used to handle a single request from a client.
+    @param connfd: file descriptor for the connection with the client
+    @return: 1 on success, -1 on error
+*/
 static int one_request(int connfd){
     char rbuf[64] = {};
     ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
@@ -104,7 +124,11 @@ static int one_request(int connfd){
     return 1;
 }
 
-
+/*
+    The socketCall function creates a TCP server that listens for incoming connections on port 1234.
+    It accepts connections and handles requests from clients using the one_request function.
+    @return: 1 on success, -1 on error
+*/
 int socketCall(){
     //Obtain a socket handle
     int fd = socket(AF_INET, SOCK_STREAM, 0);
