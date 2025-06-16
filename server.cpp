@@ -104,24 +104,48 @@ static int32_t write_all(int fd, const char *buf, size_t n) {
     return 0;
 }
 
+
+static void msg(const char *msg) {
+    fprintf(stderr, "%s\n", msg);
+}
+
 /*
     The one_request function reads a request from the client and writes a response back to the client.
     It is used to handle a single request from a client.
     @param connfd: file descriptor for the connection with the client
     @return: 1 on success, -1 on error
 */
+const size_t k_max_msg = 4096;
 static int one_request(int connfd){
-    char rbuf[64] = {};
-    ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
-    if(n<0){
-        perror("read() error");
-        return;
-    }
-    printf("Client says %s\n", rbuf);
+    char rbuf[k_max_msg + 4] = {};
+    int errno = 0;
 
-    char wbuf[] = "world";
-    write(connfd, wbuf, strlen(wbuf));
-    return 1;
+ int32_t err = read_full(connfd, rbuf, 4);
+    if (err) {
+        msg(errno == 0 ? "EOF" : "read() error");
+        return err;
+    }
+    uint32_t len = 0;
+    memcpy(&len, rbuf, 4);  
+    if (len > k_max_msg) {
+        msg("too long");
+        return -1;
+    }
+    // request body
+    err = read_full(connfd, &rbuf[4], len);
+    if (err) {
+        msg("read() error");
+        return err;
+    }
+    // do something
+    printf("client says: %.*s\n", len, &rbuf[4]);
+    // reply using the same protocol
+    const char reply[] = "world";
+    char wbuf[4 + sizeof(reply)];
+    len = (uint32_t)strlen(reply);
+    memcpy(wbuf, &len, 4);
+    memcpy(&wbuf[4], reply, len);
+    return write_all(connfd, wbuf, 4 + len);
 }
 
 /*
