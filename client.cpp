@@ -6,7 +6,13 @@
 #include <unistd.h>
 #include <string.h>
 //Creer un client TCP
-
+/*
+    The connect() syscall takes 3 arguments.
+    int rv = connect(fd, (const struct sockaddr *)&addr, sizeof(addr));
+    fd is the file descriptor returned by socket().
+    addr is a pointer to a struct sockaddr with the address to connect to.
+    sizeof(addr) is the size of the address structure.
+*/
 int main(int argc, char* argv[]){
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if(fd<0){
@@ -14,6 +20,7 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);   
     }
 
+    // Set socket options
     struct sockaddr_in addr = {};
     addr.sin_family = AF_INET;
     addr.sin_port = ntohs(1234);
